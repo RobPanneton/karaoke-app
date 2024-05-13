@@ -1,8 +1,11 @@
-import React from "react";
+import { HomePage } from "./pages/Homepage";
 
 import "./cssReset.scss";
 
 export function App() {
-    return <div>clean cra</div>;
-};
-
+  return (
+    <div>
+      <HomePage />
+    </div>
+  );
+}
