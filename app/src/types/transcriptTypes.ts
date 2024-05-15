@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 export type TranscriptContext = {
   transcriptList: TranscriptItemList | null;
   currentTranscript: CurrentTranscript | null;
@@ -41,3 +43,7 @@ export type Speaker = {
   id: string;
   name: string;
 };
+
+export type SetTranscriptDataFn =
+  | Dispatch<SetStateAction<TranscriptItemList | null>>
+  | Dispatch<SetStateAction<CurrentTranscript | null>>;

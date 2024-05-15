@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import {
   CurrentTranscript,
+  SetTranscriptDataFn,
   TranscriptContext,
   TranscriptItemList,
 } from "../types/transcriptTypes";
@@ -30,9 +31,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({
   const getTranscriptData = useCallback(
     async (
       endpoint: string,
-      setFn:
-        | Dispatch<SetStateAction<TranscriptItemList | null>>
-        | Dispatch<SetStateAction<CurrentTranscript | null>>,
+      setDataFn: SetTranscriptDataFn,
       setErrorFn: Dispatch<SetStateAction<any>>
     ) => {
       console.log("fetching data");
@@ -40,7 +39,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({
         const res = await fetch(`${apiURL}${endpoint}`);
         const data = await res.json();
         console.log({ data });
-        setFn(data);
+        setDataFn(data);
         setErrorFn(null);
       } catch (e) {
         console.log({ e });
