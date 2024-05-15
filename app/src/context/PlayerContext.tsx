@@ -4,6 +4,7 @@ import debounce from "lodash.debounce";
 import { Word, Speaker, CurrentTranscript } from "../types/transcriptTypes";
 import { CurrentParagraph, PlayerContext as IPlayerContext } from "../types/playerTypes";
 import { useTranscriptContext } from "./TranscriptContext";
+import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker } from "./PlayerContext.helpers";
 
 const PlayerContext = createContext<IPlayerContext | null>(null);
 
@@ -74,57 +75,28 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [currentTranscript, preprocessTranscript]);
 
-  // optimize finding current word with binary search algo
-  const findCurrentWord = (words: Word[], time: number) => {
-    let left = 0;
-    let right = words.length - 1;
-    while (left <= right) {
-      const mid = Math.floor((left + right) / 2);
-      if (words[mid].time <= time && words[mid].time + words[mid].duration >= time) {
-        return words[mid];
-      } else if (words[mid].time < time) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
-    }
-    return null;
-  };
-
   // update current state for currentTime, currentParagraph, currentWord, currentSpeaker
   const updateCurrentState = useCallback(() => {
-    if (processedTranscript && audioRef.current) {
-      const currentTime = audioRef.current.currentTime;
-      setCurrentTime(currentTime);
+    if (!isPlayingRef.current) return;
 
-      let newCurrentParagraph: CurrentParagraph | null = currentParagraph;
-      // check if the current paragraph is still valid
-      if (
-        currentParagraph &&
-        currentParagraph.time <= currentTime &&
-        currentParagraph.time + currentParagraph.duration >= currentTime
-      ) {
-        // skip searching, no need for new paragraph
-      } else {
-        // find new current paragraph
-        newCurrentParagraph =
-          processedTranscript.find(
-            (paragraph) => paragraph.time <= currentTime + 0.5 && paragraph.time + paragraph.duration >= currentTime
-          ) || null;
+    if (processedTranscript) {
+      const time = getCurrentTime(audioRef);
+      setCurrentTime(time);
 
-        setCurrentParagraph(newCurrentParagraph);
-      }
+      // assign up-to-date paragraph to local variable
+      const newCurrentParagraph: CurrentParagraph | null = getNewCurrentParagraph(
+        currentParagraph,
+        time,
+        processedTranscript
+      );
 
-      console.log({ processedTranscript, newCurrentParagraph, currentTime });
+      // get current word and speaker
+      const { updatedWord, updatedSpeaker } = getWordAndSpeaker(newCurrentParagraph, time);
 
-      if (newCurrentParagraph) {
-        const currentWord = findCurrentWord(newCurrentParagraph.words, currentTime);
-        setCurrentWord(currentWord || null);
-        setCurrentSpeaker(newCurrentParagraph.speaker);
-      } else {
-        setCurrentWord(null);
-        setCurrentSpeaker(null);
-      }
+      // update state variables
+      setCurrentParagraph(newCurrentParagraph);
+      setCurrentWord(updatedWord);
+      setCurrentSpeaker(updatedSpeaker);
 
       if (isPlayingRef.current) {
         requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
