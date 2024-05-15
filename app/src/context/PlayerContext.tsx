@@ -16,6 +16,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const requestRef = useRef<number | null>(null);
 
   const { currentTranscript } = useTranscriptContext();
 
@@ -30,6 +31,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      }
     }
   };
 
@@ -39,12 +44,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setCurrentTime(time);
     }
   };
-
-  const handleTimeUpdate = useCallback(() => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  }, []);
 
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
@@ -71,75 +70,83 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [currentTranscript, preprocessTranscript]);
 
-  useEffect(() => {
-    const findCurrentWord = (words: Word[], time: number) => {
-      // Binary search for efficiency
-      let left = 0;
-      let right = words.length - 1;
-      while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        if (words[mid].time <= time && words[mid].time + words[mid].duration >= time) {
-          return words[mid];
-        } else if (words[mid].time < time) {
-          left = mid + 1;
-        } else {
-          right = mid - 1;
-        }
+  const findCurrentWord = (words: Word[], time: number) => {
+    // Binary search for efficiency
+    let left = 0;
+    let right = words.length - 1;
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      if (words[mid].time <= time && words[mid].time + words[mid].duration >= time) {
+        return words[mid];
+      } else if (words[mid].time < time) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
       }
-      return null;
-    };
+    }
+    return null;
+  };
 
-    const updateCurrentState = () => {
-      if (processedTranscript) {
-        let newCurrentParagraph: CurrentParagraph | null = currentParagraph;
-        // check if the current paragraph is still valid
-        if (
-          currentParagraph &&
-          currentParagraph.time <= currentTime &&
-          currentParagraph.time + currentParagraph.duration >= currentTime
-        ) {
-          // skip searching, no need for new paragraph
-        } else {
-          // find new current paragraph
-          newCurrentParagraph =
-            processedTranscript.find(
-              (paragraph) => paragraph.time <= currentTime && paragraph.time + paragraph.duration >= currentTime
-            ) || null;
+  const updateCurrentState = useCallback(() => {
+    if (processedTranscript && audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
+      setCurrentTime(currentTime);
 
-          setCurrentParagraph(newCurrentParagraph);
-        }
+      let newCurrentParagraph: CurrentParagraph | null = currentParagraph;
+      // check if the current paragraph is still valid
+      if (
+        currentParagraph &&
+        currentParagraph.time <= currentTime &&
+        currentParagraph.time + currentParagraph.duration >= currentTime
+      ) {
+        // skip searching, no need for new paragraph
+      } else {
+        // find new current paragraph
+        newCurrentParagraph =
+          processedTranscript.find(
+            (paragraph) => paragraph.time <= currentTime + 0.5 && paragraph.time + paragraph.duration >= currentTime
+          ) || null;
 
-        console.log({ processedTranscript, newCurrentParagraph });
-
-        if (newCurrentParagraph) {
-          const currentWord = findCurrentWord(newCurrentParagraph.words, currentTime);
-          setCurrentWord(currentWord || null);
-          setCurrentSpeaker(newCurrentParagraph.speaker);
-        } else {
-          setCurrentWord(null);
-          setCurrentSpeaker(null);
-        }
+        setCurrentParagraph(newCurrentParagraph);
       }
-    };
 
-    const debouncedUpdate = debounce(updateCurrentState, 250);
-    debouncedUpdate();
+      console.log({ processedTranscript, newCurrentParagraph, currentTime });
 
-    return () => {
-      debouncedUpdate.cancel();
-    };
-  }, [currentTime, processedTranscript]);
+      if (newCurrentParagraph) {
+        const currentWord = findCurrentWord(newCurrentParagraph.words, currentTime);
+        setCurrentWord(currentWord || null);
+        setCurrentSpeaker(newCurrentParagraph.speaker);
+      } else {
+        setCurrentWord(null);
+        setCurrentSpeaker(null);
+      }
+
+      if (isPlaying) {
+        requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+      }
+    }
+  }, [currentTime, processedTranscript, currentParagraph, isPlaying]);
+
+  // Use lodash.debounce for updateCurrentState
+  const debouncedUpdateCurrentState = useCallback(debounce(updateCurrentState, 30), [updateCurrentState]);
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
       audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
       return () => {
-        audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
         audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata); // Cleanup
       };
     }
-  }, [handleTimeUpdate]);
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying && requestRef.current === null) {
+      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+    } else if (!isPlaying && requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+      requestRef.current = null;
+    }
+  }, [isPlaying, debouncedUpdateCurrentState]);
 
   return (
     <PlayerContext.Provider

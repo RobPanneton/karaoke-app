@@ -45,8 +45,8 @@ export const Player: React.FC = () => {
           <div className={styles.captionDisplay}>
             {currentParagraph && (
               <p className='paragraph'>
-                {currentParagraph?.words.map((word: Word) => {
-                  const key = word.time.toString() + "-" + word.duration.toString() + "-" + word.text;
+                {currentParagraph?.words.map((word: Word, index: number) => {
+                  const key = `${index}-${word.text}-${word.duration}-${word.time}`;
                   return (
                     <span key={key} className={currentWord?.time === word.time ? styles.highlight : ""}>
                       {word.text}{" "}
