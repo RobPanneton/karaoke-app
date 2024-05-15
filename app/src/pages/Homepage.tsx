@@ -7,7 +7,7 @@ import styles from "./Homepage.module.scss";
 
 export const HomePage: React.FC = () => {
   return (
-    <div>
+    <div className={styles.pageWrapper}>
       <Heading />
       <Player />
       <TranscriptList />
