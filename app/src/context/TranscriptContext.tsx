@@ -41,6 +41,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({
         const data = await res.json();
         console.log({ data });
         setFn(data);
+        setErrorFn(null);
       } catch (e) {
         console.log({ e });
         setErrorFn(e);
@@ -49,6 +50,19 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({
     [apiURL]
   );
 
+  const handleUserSelect = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e?.currentTarget.value;
+    if (!id) {
+      setTranscriptError(true);
+      return;
+    }
+    getTranscriptData(
+      `/transcripts/${id}`,
+      setCurrentTranscript,
+      setTranscriptError
+    );
+  };
+
   useEffect(() => {
     console.log("use effect triggered");
     getTranscriptData("/transcripts", setTranscriptList, setListError);
@@ -56,7 +70,13 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <TransacriptContext.Provider
-      value={{ transcriptList, currentTranscript, listError, transcriptError }}
+      value={{
+        transcriptList,
+        currentTranscript,
+        listError,
+        transcriptError,
+        handleUserSelect,
+      }}
     >
       {children}
     </TransacriptContext.Provider>
