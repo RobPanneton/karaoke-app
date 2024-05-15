@@ -29,7 +29,8 @@ export type Paragraph = {
   id: string;
   time: number;
   duration: number;
-  spearker_id: string;
+  speaker_id: string;
+  words: Word[];
 };
 
 export type Word = {
