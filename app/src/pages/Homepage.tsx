@@ -4,12 +4,15 @@ import { Player } from "../components/player/Player";
 import { TranscriptList } from "../components/transcripts/TranscriptList";
 
 import styles from "./Homepage.module.scss";
+import { PlayerProvider } from "../context/PlayerContext";
 
 export const HomePage: React.FC = () => {
   return (
     <div className={styles.pageWrapper}>
       <Heading />
-      <Player />
+      <PlayerProvider>
+        <Player />
+      </PlayerProvider>
       <TranscriptList />
     </div>
   );

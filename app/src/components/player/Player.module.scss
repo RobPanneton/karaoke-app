@@ -1,1 +1,33 @@
 @import "../../variables.scss";
+
+.playerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.playerControls {
+  margin-bottom: 20px;
+}
+
+.captionDisplay {
+  max-width: 600px;
+  text-align: center;
+}
+
+.paragraph {
+  display: flex;
+  flex-wrap: wrap;
+
+  span {
+    margin: 0 2px;
+  }
+}
+
+.highlight {
+  background-color: yellow;
+}
+
+.speaker {
+  font-weight: bold;
+}
