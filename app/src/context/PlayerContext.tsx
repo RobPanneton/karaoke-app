@@ -11,6 +11,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentTime, setCurrentTime] = useState(0);
   const [transcriptDuration, setTranscriptDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(isPlaying);
   const [processedTranscript, setProcessedTranscript] = useState<CurrentParagraph[] | null>(null);
   const [currentParagraph, setCurrentParagraph] = useState<CurrentParagraph | null>(null);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
@@ -24,6 +25,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (audioRef.current) {
       audioRef.current.play();
       setIsPlaying(true);
+      isPlayingRef.current = true;
+      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
     }
   };
 
@@ -31,6 +34,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
+      isPlayingRef.current = false;
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
         requestRef.current = null;
@@ -51,7 +55,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Preprocess paragraphs with their words
+  // preprocess paragraphs with their words and speaker
   const preprocessTranscript = useCallback((transcript: CurrentTranscript) => {
     return transcript.paragraphs.map((paragraph) => ({
       ...paragraph,
@@ -70,8 +74,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [currentTranscript, preprocessTranscript]);
 
+  // optimize finding current word with binary search algo
   const findCurrentWord = (words: Word[], time: number) => {
-    // Binary search for efficiency
     let left = 0;
     let right = words.length - 1;
     while (left <= right) {
@@ -87,6 +91,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return null;
   };
 
+  // update current state for currentTime, currentParagraph, currentWord, currentSpeaker
   const updateCurrentState = useCallback(() => {
     if (processedTranscript && audioRef.current) {
       const currentTime = audioRef.current.currentTime;
@@ -121,15 +126,16 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setCurrentSpeaker(null);
       }
 
-      if (isPlaying) {
+      if (isPlayingRef.current) {
         requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
       }
     }
-  }, [currentTime, processedTranscript, currentParagraph, isPlaying]);
+  }, [currentTime, processedTranscript, currentParagraph]);
 
   // Use lodash.debounce for updateCurrentState
   const debouncedUpdateCurrentState = useCallback(debounce(updateCurrentState, 30), [updateCurrentState]);
 
+  // add listener to watch audioRef metadata
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
@@ -139,6 +145,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
+  // add or remove animation frame depending when user changes isPlaying state
   useEffect(() => {
     if (isPlaying && requestRef.current === null) {
       requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
