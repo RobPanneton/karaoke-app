@@ -3,6 +3,7 @@ export type TranscriptContext = {
   currentTranscript: CurrentTranscript | null;
   listError: boolean;
   transcriptError: boolean;
+  handleUserSelect: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export type TranscriptListItem = {
@@ -19,6 +20,7 @@ export type CurrentTranscript = {
   comment: string;
   paragraphs: Paragraph[];
   words: Word[];
+  speakers: Speaker[];
 };
 
 export type Paragraph = {
@@ -33,4 +35,9 @@ export type Word = {
   duration: number;
   text: string;
   paragraph_id: string;
+};
+
+export type Speaker = {
+  id: string;
+  name: string;
 };
