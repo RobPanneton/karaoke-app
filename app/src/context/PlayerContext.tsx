@@ -1,32 +1,23 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import debounce from "lodash.debounce";
 
-import { Word, Paragraph, Speaker } from "../types/transcriptTypes";
-import { PlayerContext as IPlayerContext } from "../types/playerTypes";
+import { Word, Speaker, CurrentTranscript } from "../types/transcriptTypes";
+import { CurrentParagraph, PlayerContext as IPlayerContext } from "../types/playerTypes";
 import { useTranscriptContext } from "./TranscriptContext";
 
 const PlayerContext = createContext<IPlayerContext | null>(null);
 
-export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
+  const [transcriptDuration, setTranscriptDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentParagraph, setCurrentParagraph] = useState<Paragraph | null>(
-    null
-  );
+  const [processedTranscript, setProcessedTranscript] = useState<CurrentParagraph[] | null>(null);
+  const [currentParagraph, setCurrentParagraph] = useState<CurrentParagraph | null>(null);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { currentTranscript } = useTranscriptContext();
-  const transcriptDuration = audioRef?.current?.duration ?? 0;
 
   const play = () => {
     if (audioRef.current) {
@@ -55,58 +46,100 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  useEffect(() => {
-    console.log("triggered useEffect");
-    if (currentTranscript) {
-      // first, find current paragraph based on the current time
-      const currentParagraph = currentTranscript.paragraphs.find(
-        (paragraph) =>
-          paragraph.time <= currentTime &&
-          paragraph.time + paragraph.duration >= currentTime
-      );
-
-      // next, populate the current paragraph with it's assocaited words
-      if (currentParagraph) {
-        const wordsInParagraph = currentTranscript.words.filter(
-          (word) => word.paragraph_id === currentParagraph.id
-        );
-
-        const populatedParagraph = {
-          ...currentParagraph,
-          words: wordsInParagraph,
-        };
-
-        // next, find current word
-        const currentWord = wordsInParagraph.find(
-          (word) =>
-            word.time <= currentTime && word.time + word.duration >= currentTime
-        );
-
-        const currentSpeaker = currentTranscript.speakers.find(
-          (speaker) => speaker.id === currentParagraph.speaker_id
-        );
-
-        setCurrentParagraph(populatedParagraph || null);
-        setCurrentWord(currentWord || null);
-        setCurrentSpeaker(currentSpeaker || null);
-
-        console.log({ populatedParagraph, currentWord, currentSpeaker });
-      } else {
-        setCurrentParagraph(null);
-        setCurrentWord(null);
-        setCurrentSpeaker(null);
-      }
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setTranscriptDuration(audioRef.current.duration);
     }
-  }, [currentTime, currentTranscript]);
+  };
+
+  // Preprocess paragraphs with their words
+  const preprocessTranscript = useCallback((transcript: CurrentTranscript) => {
+    return transcript.paragraphs.map((paragraph) => ({
+      ...paragraph,
+      words: transcript.words.filter((word) => word.paragraph_id === paragraph.id),
+      speaker: transcript.speakers.find((speaker) => speaker.id === paragraph.speaker_id) ?? {
+        id: "unknown",
+        name: "Unknown",
+      },
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (currentTranscript) {
+      const preprocessed = preprocessTranscript(currentTranscript);
+      setProcessedTranscript(preprocessed);
+    }
+  }, [currentTranscript, preprocessTranscript]);
+
+  useEffect(() => {
+    const findCurrentWord = (words: Word[], time: number) => {
+      // Binary search for efficiency
+      let left = 0;
+      let right = words.length - 1;
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (words[mid].time <= time && words[mid].time + words[mid].duration >= time) {
+          return words[mid];
+        } else if (words[mid].time < time) {
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      return null;
+    };
+
+    const updateCurrentState = () => {
+      if (processedTranscript) {
+        let newCurrentParagraph: CurrentParagraph | null = currentParagraph;
+        // check if the current paragraph is still valid
+        if (
+          currentParagraph &&
+          currentParagraph.time <= currentTime &&
+          currentParagraph.time + currentParagraph.duration >= currentTime
+        ) {
+          // skip searching, no need for new paragraph
+        } else {
+          // find new current paragraph
+          newCurrentParagraph =
+            processedTranscript.find(
+              (paragraph) => paragraph.time <= currentTime && paragraph.time + paragraph.duration >= currentTime
+            ) || null;
+
+          setCurrentParagraph(newCurrentParagraph);
+        }
+
+        console.log({ processedTranscript, newCurrentParagraph });
+
+        if (newCurrentParagraph) {
+          const currentWord = findCurrentWord(newCurrentParagraph.words, currentTime);
+          setCurrentWord(currentWord || null);
+          setCurrentSpeaker(newCurrentParagraph.speaker);
+        } else {
+          setCurrentWord(null);
+          setCurrentSpeaker(null);
+        }
+      }
+    };
+
+    const debouncedUpdate = debounce(updateCurrentState, 250);
+    debouncedUpdate();
+
+    return () => {
+      debouncedUpdate.cancel();
+    };
+  }, [currentTime, processedTranscript]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
+      audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
       return () => {
         audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
+        audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata); // Cleanup
       };
     }
-  }, [handleTimeUpdate, audioRef.current]);
+  }, [handleTimeUpdate]);
 
   return (
     <PlayerContext.Provider

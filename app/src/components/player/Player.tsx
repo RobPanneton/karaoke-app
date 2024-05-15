@@ -1,6 +1,7 @@
 import React from "react";
 import { usePlayerContext } from "../../context/PlayerContext";
 import { useTranscriptContext } from "../../context/TranscriptContext";
+import { Word } from "../../types/transcriptTypes";
 
 import styles from "./Player.module.scss";
 
@@ -32,9 +33,7 @@ export const Player: React.FC = () => {
       {currentTranscript ? (
         <>
           <div className={styles.playerControls}>
-            <button onClick={handlePlayPause}>
-              {isPlaying ? "Pause" : "Play"}
-            </button>
+            <button onClick={handlePlayPause}>{isPlaying ? "Pause" : "Play"}</button>
             <input
               type='range'
               min='0'
@@ -46,21 +45,17 @@ export const Player: React.FC = () => {
           <div className={styles.captionDisplay}>
             {currentParagraph && (
               <p className='paragraph'>
-                {currentParagraph?.words.map((word) => (
-                  <span
-                    key={word.time}
-                    className={
-                      currentWord?.time === word.time ? styles.highlight : ""
-                    }
-                  >
-                    {word.text}{" "}
-                  </span>
-                ))}
+                {currentParagraph?.words.map((word: Word) => {
+                  const key = word.time.toString() + "-" + word.duration.toString() + "-" + word.text;
+                  return (
+                    <span key={key} className={currentWord?.time === word.time ? styles.highlight : ""}>
+                      {word.text}{" "}
+                    </span>
+                  );
+                })}
               </p>
             )}
-            {currentSpeaker && (
-              <p className={styles.speaker}>{currentSpeaker.name}</p>
-            )}
+            {currentSpeaker && <p className={styles.speaker}>{currentSpeaker.name}</p>}
           </div>
         </>
       ) : (

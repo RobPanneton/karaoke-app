@@ -12,3 +12,7 @@ export type PlayerContext = {
   seek: (time: number) => void;
   transcriptDuration: number;
 };
+
+export type CurrentParagraph = Paragraph & {
+  speaker: Speaker;
+};
