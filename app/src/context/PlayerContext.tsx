@@ -26,6 +26,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { currentTranscript } = useTranscriptContext();
+  const transcriptDuration = audioRef?.current?.duration ?? 0;
 
   const play = () => {
     if (audioRef.current) {
@@ -118,6 +119,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         play,
         pause,
         seek,
+        transcriptDuration,
       }}
     >
       <audio ref={audioRef} src={currentTranscript?.audio_url} />

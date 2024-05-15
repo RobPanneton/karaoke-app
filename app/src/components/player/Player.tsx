@@ -14,6 +14,7 @@ export const Player: React.FC = () => {
     currentSpeaker,
     seek,
     currentTime,
+    transcriptDuration,
   } = usePlayerContext();
 
   const { currentTranscript } = useTranscriptContext();
@@ -37,7 +38,7 @@ export const Player: React.FC = () => {
             <input
               type='range'
               min='0'
-              max={currentParagraph?.duration || 100}
+              max={transcriptDuration}
               value={currentTime}
               onChange={(e) => seek(parseFloat(e.target.value))}
             />
