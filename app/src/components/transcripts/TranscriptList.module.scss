@@ -7,11 +7,39 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 18px;
+  gap: 30px;
 
   li {
+    width: 100%;
+
     button {
-      margin: 0 auto;
+      font-family: Inter;
+
+      width: 100%;
+      padding: 12px 20px;
+
+      box-shadow: 0 2px 5px rgba($color-purple, 0.3), 0 2px 10px rgba($color-purple, 0.5);
+      background-color: $color-very-dark-gray;
+      border: 1px solid $color-purple;
+
+      border-radius: 8px;
+      color: $color-white;
+      text-align: left;
+      font-size: 16px;
+      line-height: 150%;
+      font-weight: 600;
+
+      transition: background-color 0.3s ease-in-out;
+
+      cursor: pointer;
+
+      -webkit-tap-highlight-color: transparent;
+
+      &:hover,
+      &.active {
+        background-color: $color-purple;
+        color: $color-black;
+      }
     }
   }
 }
