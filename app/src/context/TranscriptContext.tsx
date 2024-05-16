@@ -4,7 +4,6 @@ import {
   SetTranscriptDataFn,
   TranscriptContext as ITranscriptContext,
   TranscriptItemList,
-  TranscriptListItem,
 } from "../types/transcriptTypes";
 
 export const TranscriptContext = createContext<ITranscriptContext | null>(null);
@@ -15,6 +14,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [userSelect, setUserSelect] = useState<number>(-1); // keep track of user select for ui changes
   const [listError, setListError] = useState<null | any>(null);
   const [transcriptError, setTranscriptError] = useState<null | any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const apiURL = process.env.REACT_APP_TRANSCRIPT_API_URL;
 
@@ -25,6 +25,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const getTranscriptData = useCallback(
     async (endpoint: string, setDataFn: SetTranscriptDataFn, setErrorFn: Dispatch<SetStateAction<any>>) => {
       try {
+        setIsLoading(true);
         // fetch data from provided endpoint
         const res = await fetch(`${apiURL}${endpoint}`);
 
@@ -36,9 +37,11 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         console.log({ data });
         setDataFn(data);
         setErrorFn(null);
+        setIsLoading(false);
       } catch (e) {
         console.log({ e });
         setErrorFn(e);
+        setIsLoading(false);
       }
     },
     [apiURL]
@@ -73,6 +76,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         listError,
         transcriptError,
         handleUserSelect,
+        isLoading,
       }}
     >
       {children}

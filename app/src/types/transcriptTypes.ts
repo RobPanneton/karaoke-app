@@ -7,6 +7,7 @@ export type TranscriptContext = {
   listError: boolean;
   transcriptError: boolean;
   handleUserSelect: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  isLoading: boolean;
 };
 
 export type TranscriptListItem = {
