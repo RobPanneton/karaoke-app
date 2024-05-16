@@ -32,34 +32,38 @@ export const Player: React.FC = () => {
     <div className={styles.playerContainer}>
       {currentTranscript ? (
         <>
-          <div className={styles.playerControls}>
-            <button onClick={handlePlayPause}>{isPlaying ? "Pause" : "Play"}</button>
-            <input
-              type='range'
-              min='0'
-              max={transcriptDuration}
-              value={currentTime}
-              onChange={(e) => seek(parseFloat(e.target.value))}
-            />
-          </div>
           <div className={styles.captionDisplay}>
-            {currentParagraph && (
-              <p className='paragraph'>
-                {currentParagraph?.words.map((word: Word, index: number) => {
-                  const key = `${index}-${word.text}-${word.duration}-${word.time}`;
-                  return (
-                    <span key={key} className={currentWord?.time === word.time ? styles.highlight : ""}>
-                      {word.text}{" "}
-                    </span>
-                  );
-                })}
-              </p>
-            )}
-            {currentSpeaker && <p className={styles.speaker}>{currentSpeaker.name}</p>}
+            <div className={styles.paragraph}>
+              <span>
+                {currentSpeaker && <span className={styles.speaker}>{currentSpeaker.name}</span>} :{" "}
+                {currentParagraph && (
+                  <span>
+                    {currentParagraph?.words.map((word: Word, index: number) => {
+                      const key = `${index}-${word.text}-${word.duration}-${word.time}`;
+                      return (
+                        <span key={key} className={currentWord?.time === word.time ? styles.highlight : ""}>
+                          {word.text}{" "}
+                        </span>
+                      );
+                    })}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className={styles.playerControls}>
+              <button onClick={handlePlayPause}>{isPlaying ? "Pause" : "Play"}</button>
+              <input
+                type='range'
+                min='0'
+                max={transcriptDuration}
+                value={currentTime}
+                onChange={(e) => seek(parseFloat(e.target.value))}
+              />
+            </div>
           </div>
         </>
       ) : (
-        <div>pick a song to begin!</div>
+        <h2>Pick a file to get started!</h2>
       )}
     </div>
   );
