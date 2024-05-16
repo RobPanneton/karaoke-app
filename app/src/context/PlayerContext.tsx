@@ -4,7 +4,7 @@ import debounce from "lodash.debounce";
 import { Word, Speaker, CurrentTranscript } from "../types/transcriptTypes";
 import { CurrentParagraph, PlayerContext as IPlayerContext } from "../types/playerTypes";
 import { useTranscriptContext } from "./TranscriptContext";
-import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker } from "./PlayerContext.helpers";
+import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker, mapParagraphs } from "./PlayerContext.helpers";
 
 const PlayerContext = createContext<IPlayerContext | null>(null);
 
@@ -13,6 +13,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [transcriptDuration, setTranscriptDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const isPlayingRef = useRef(isPlaying);
+  const isSeekingRef = useRef<boolean>(false);
   const [processedTranscript, setProcessedTranscript] = useState<CurrentParagraph[] | null>(null);
   const [currentParagraph, setCurrentParagraph] = useState<CurrentParagraph | null>(null);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
@@ -70,16 +71,18 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const handleSeeked = () => {
+    if (audioRef.current) {
+      isSeekingRef.current = true;
+      const time = audioRef.current.currentTime;
+      setCurrentTime(time);
+      updateCurrentState();
+    }
+  };
+
   // preprocess paragraphs with their words and speaker
   const preprocessTranscript = useCallback((transcript: CurrentTranscript) => {
-    return transcript.paragraphs.map((paragraph) => ({
-      ...paragraph,
-      words: transcript.words.filter((word) => word.paragraph_id === paragraph.id),
-      speaker: transcript.speakers.find((speaker) => speaker.id === paragraph.speaker_id) ?? {
-        id: "unknown",
-        name: "Unknown",
-      },
-    }));
+    return mapParagraphs(transcript);
   }, []);
 
   useEffect(() => {
@@ -93,8 +96,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // update current state for currentTime, currentParagraph, currentWord, currentSpeaker
   const updateCurrentState = useCallback(() => {
-    if (!isPlayingRef.current) return;
-
+    if (!isPlayingRef.current && !isSeekingRef.current) return;
     if (processedTranscript) {
       const time = getCurrentTime(audioRef);
       setCurrentTime(time);
@@ -113,6 +115,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setCurrentParagraph(newCurrentParagraph);
       setCurrentWord(updatedWord);
       setCurrentSpeaker(updatedSpeaker);
+      isSeekingRef.current = false;
 
       if (isPlayingRef.current) {
         requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
@@ -123,19 +126,21 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Use lodash.debounce for updateCurrentState
   const debouncedUpdateCurrentState = useCallback(debounce(updateCurrentState, 30), [updateCurrentState]);
 
-  // add listener to watch audioRef metadata
+  // add listener to watch audioRef metadata and play/pause
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
       //
       audioRef.current.addEventListener("play", play);
       audioRef.current.addEventListener("pause", pause);
+      audioRef.current.addEventListener("seeked", handleSeeked);
 
       return () => {
         audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata);
         //
         audioRef.current?.removeEventListener("play", play);
-        audioRef.current?.removeEventListener("pause", pause); // Cleanup
+        audioRef.current?.removeEventListener("pause", pause);
+        audioRef.current?.removeEventListener("seeked", handleSeeked); // Cleanup
       };
     }
   }, [processedTranscript]);
