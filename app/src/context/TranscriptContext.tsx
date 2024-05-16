@@ -45,6 +45,8 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // parse data and set to state
         const data = await res.json();
 
+        if (endpoint === "/transcripts/random" && data?.id) setUserSelect(data?.id);
+
         setDataFn(data);
         setErrorFn(null);
         setIsLoading(false);
