@@ -5,7 +5,7 @@ import { TranscriptListItem } from "../../types/transcriptTypes";
 import styles from "./TranscriptList.module.scss";
 
 export const TranscriptList: React.FC = () => {
-  const { transcriptList, handleUserSelect } = useTranscriptContext();
+  const { transcriptList, userSelect, handleUserSelect } = useTranscriptContext();
 
   return (
     <div>
@@ -18,6 +18,7 @@ export const TranscriptList: React.FC = () => {
                   type='button'
                   value={t.id.toString()}
                   onClick={handleUserSelect}
+                  className={userSelect === t.id ? styles.active : ""}
                 >
                   {t.name}
                 </button>

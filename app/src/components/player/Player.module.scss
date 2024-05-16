@@ -1,31 +1,72 @@
 @import "../../variables.scss";
 
 .playerContainer {
+  width: 100%;
+  min-height: 200px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  margin-top: 20px;
+
+  @media (min-width: $breakpoint-large) {
+    min-height: 300px;
+  }
+}
+
+.cta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+
+  min-height: 100%;
+
+  h2 {
+    font-size: 24px;
+    max-width: 300px;
+    text-align: center;
+
+    @media (min-width: $breakpoint-large) {
+      font-size: 48px;
+
+      max-width: 500px;
+    }
+  }
 }
 
 .playerControls {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .captionDisplay {
-  max-width: 600px;
+  width: 100%;
+  max-width: 500px;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 3px 6px rgba($color-purple, 0.5);
+  padding: 20px;
+  margin: 20px 0;
+  background-color: $color-dark-gray;
+  border: 1px solid $color-purple;
+  border-radius: 8px;
   text-align: center;
 }
 
 .paragraph {
-  display: flex;
-  flex-wrap: wrap;
+  min-height: 150px;
+  font-size: 18px;
+  line-height: 150%;
+  font-family: Inconsolata;
 
-  span {
-    margin: 0 2px;
+  @media (min-width: $breakpoint-large) {
+    font-size: 24px;
+    min-height: 200px;
   }
 }
 
 .highlight {
-  background-color: yellow;
+  background-color: $color-purple;
 }
 
 .speaker {
