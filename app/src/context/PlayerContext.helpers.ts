@@ -1,5 +1,5 @@
 import { CurrentParagraph } from "../types/playerTypes";
-import { Speaker, Word } from "../types/transcriptTypes";
+import { CurrentTranscript, Speaker, Word } from "../types/transcriptTypes";
 
 export const getNewCurrentParagraph = (
   currentParagraph: CurrentParagraph | null,
@@ -55,4 +55,15 @@ export const getCurrentWord = (words: Word[], time: number) => {
 export const getCurrentTime = (audioRef: React.RefObject<HTMLAudioElement>): number => {
   if (audioRef?.current) return audioRef.current.currentTime;
   return 0;
+};
+
+export const mapParagraphs = (transcript: CurrentTranscript): CurrentParagraph[] => {
+  return transcript.paragraphs.map((paragraph) => ({
+    ...paragraph,
+    words: transcript.words.filter((word) => word.paragraph_id === paragraph.id),
+    speaker: transcript.speakers.find((speaker) => speaker.id === paragraph.speaker_id) ?? {
+      id: "unknown",
+      name: "Unknown",
+    },
+  }));
 };

@@ -25,7 +25,7 @@ export const TranscriptList: React.FC = () => {
               </li>
             );
           })}
-          <li key='a-${random}'>
+          <li key='a-random'>
             <button type='button' value={"random"} onClick={handleUserSelect}>
               Surprise Me!
             </button>

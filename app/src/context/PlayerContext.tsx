@@ -4,7 +4,7 @@ import debounce from "lodash.debounce";
 import { Word, Speaker, CurrentTranscript } from "../types/transcriptTypes";
 import { CurrentParagraph, PlayerContext as IPlayerContext } from "../types/playerTypes";
 import { useTranscriptContext } from "./TranscriptContext";
-import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker } from "./PlayerContext.helpers";
+import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker, mapParagraphs } from "./PlayerContext.helpers";
 
 const PlayerContext = createContext<IPlayerContext | null>(null);
 
@@ -82,14 +82,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // preprocess paragraphs with their words and speaker
   const preprocessTranscript = useCallback((transcript: CurrentTranscript) => {
-    return transcript.paragraphs.map((paragraph) => ({
-      ...paragraph,
-      words: transcript.words.filter((word) => word.paragraph_id === paragraph.id),
-      speaker: transcript.speakers.find((speaker) => speaker.id === paragraph.speaker_id) ?? {
-        id: "unknown",
-        name: "Unknown",
-      },
-    }));
+    return mapParagraphs(transcript);
   }, []);
 
   useEffect(() => {
