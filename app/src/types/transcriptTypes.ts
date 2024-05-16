@@ -8,6 +8,7 @@ export type TranscriptContext = {
   transcriptError: boolean;
   handleUserSelect: (e: React.MouseEvent<HTMLButtonElement>) => void;
   isLoading: boolean;
+  playerContainerRef: React.RefObject<HTMLDivElement> | null;
 };
 
 export type TranscriptListItem = {
