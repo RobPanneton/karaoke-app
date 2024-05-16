@@ -2,7 +2,7 @@
 
 .playerContainer {
   width: 100%;
-  min-height: 200px;
+  min-height: 300px;
 
   display: flex;
   flex-direction: column;
@@ -11,7 +11,7 @@
   margin-top: 20px;
 
   @media (min-width: $breakpoint-large) {
-    min-height: 300px;
+    min-height: 350px;
   }
 }
 

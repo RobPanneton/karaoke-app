@@ -1,4 +1,13 @@
-import React, { Dispatch, SetStateAction, createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   CurrentTranscript,
   SetTranscriptDataFn,
@@ -15,6 +24,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [listError, setListError] = useState<null | any>(null);
   const [transcriptError, setTranscriptError] = useState<null | any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const playerContainerRef = useRef<HTMLDivElement | null>(null);
 
   const apiURL = process.env.REACT_APP_TRANSCRIPT_API_URL;
 
@@ -34,6 +44,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         // parse data and set to state
         const data = await res.json();
+
         setDataFn(data);
         setErrorFn(null);
         setIsLoading(false);
@@ -59,6 +70,11 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // get selected transcript data: call method to fetch it and set to state
     getTranscriptData(`/transcripts/${id}`, setCurrentTranscript, setTranscriptError);
+
+    if (playerContainerRef?.current) {
+      const topOffset = playerContainerRef.current.getBoundingClientRect().top + window.scrollY - 20;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
@@ -75,6 +91,7 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         transcriptError,
         handleUserSelect,
         isLoading,
+        playerContainerRef,
       }}
     >
       {children}

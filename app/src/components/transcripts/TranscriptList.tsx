@@ -11,9 +11,9 @@ export const TranscriptList: React.FC = () => {
     <div>
       {transcriptList && (
         <ul className={styles.listContainer}>
-          {transcriptList.map((t: TranscriptListItem) => {
+          {transcriptList.map((t: TranscriptListItem, index: number) => {
             return (
-              <li key={`${t.id}-${t.name}`}>
+              <li key={`${index}-${t.id}-${t.name}`}>
                 <button
                   type='button'
                   value={t.id.toString()}

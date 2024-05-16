@@ -9,10 +9,10 @@ import styles from "./Player.module.scss";
 export const Player: React.FC = () => {
   const { currentParagraph, currentWord, currentSpeaker, audioRef } = usePlayerContext();
 
-  const { currentTranscript, isLoading } = useTranscriptContext();
+  const { currentTranscript, isLoading, playerContainerRef } = useTranscriptContext();
 
   return (
-    <div className={styles.playerContainer}>
+    <div className={styles.playerContainer} ref={playerContainerRef}>
       {isLoading && <Loader />}
       {!isLoading && (
         <>
