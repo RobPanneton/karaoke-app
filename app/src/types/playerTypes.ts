@@ -11,6 +11,7 @@ export type PlayerContext = {
   pause: () => void;
   seek: (time: number) => void;
   transcriptDuration: number;
+  audioRef: React.RefObject<HTMLAudioElement> | null;
 };
 
 export type CurrentParagraph = Paragraph & {

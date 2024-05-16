@@ -111,11 +111,18 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
+      //
+      audioRef.current.addEventListener("play", play);
+      audioRef.current.addEventListener("pause", pause);
+
       return () => {
-        audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata); // Cleanup
+        audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        //
+        audioRef.current?.removeEventListener("play", play);
+        audioRef.current?.removeEventListener("pause", pause); // Cleanup
       };
     }
-  }, []);
+  }, [processedTranscript]);
 
   // add or remove animation frame depending when user changes isPlaying state
   useEffect(() => {
@@ -139,9 +146,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         pause,
         seek,
         transcriptDuration,
+        audioRef,
       }}
     >
-      <audio ref={audioRef} src={currentTranscript?.audio_url} />
       {children}
     </PlayerContext.Provider>
   );

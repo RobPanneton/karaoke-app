@@ -7,27 +7,9 @@ import { Loader } from "../common/loader/Loader";
 import styles from "./Player.module.scss";
 
 export const Player: React.FC = () => {
-  const {
-    isPlaying,
-    play,
-    pause,
-    currentParagraph,
-    currentWord,
-    currentSpeaker,
-    seek,
-    currentTime,
-    transcriptDuration,
-  } = usePlayerContext();
+  const { currentParagraph, currentWord, currentSpeaker, audioRef } = usePlayerContext();
 
   const { currentTranscript, isLoading } = useTranscriptContext();
-
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
-    }
-  };
 
   return (
     <div className={styles.playerContainer}>
@@ -37,14 +19,7 @@ export const Player: React.FC = () => {
           {currentTranscript ? (
             <>
               <div className={styles.playerControls}>
-                <button onClick={handlePlayPause}>{isPlaying ? "Pause" : "Play"}</button>
-                <input
-                  type='range'
-                  min='0'
-                  max={transcriptDuration}
-                  value={currentTime}
-                  onChange={(e) => seek(parseFloat(e.target.value))}
-                />
+                <audio ref={audioRef} controls src={currentTranscript.audio_url}></audio>
               </div>
               <div className={styles.captionDisplay}>
                 <div className={styles.paragraph}>
