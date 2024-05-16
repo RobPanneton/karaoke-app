@@ -35,11 +35,15 @@
       -webkit-tap-highlight-color: transparent;
 
       &:hover,
+      &:focus,
       &.active {
         background-color: $color-purple;
         color: $color-black;
       }
 
+      &:focus {
+        outline: none;
+      }
       @media (min-width: $breakpoint-large) {
         padding: 16px 24px;
         font-size: 20px;
