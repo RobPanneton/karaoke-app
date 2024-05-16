@@ -24,7 +24,7 @@ export const Player: React.FC = () => {
               <div className={styles.captionDisplay}>
                 <div className={styles.paragraph}>
                   <span>
-                    {currentSpeaker && <span className={styles.speaker}>{currentSpeaker.name}</span>} :{" "}
+                    {currentSpeaker && <span className={styles.speaker}>{currentSpeaker?.name || "Unknown"} : </span>}
                     {currentParagraph && (
                       <span>
                         {currentParagraph?.words.map((word: Word, index: number) => {
