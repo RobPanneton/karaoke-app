@@ -22,6 +22,20 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const { currentTranscript } = useTranscriptContext();
 
+  const resetPlayerState = () => {
+    setCurrentTime(0);
+    setTranscriptDuration(0);
+    setIsPlaying(false);
+    setProcessedTranscript(null);
+    setCurrentParagraph(null);
+    setCurrentWord(null);
+    setCurrentSpeaker(null);
+    if (requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+      requestRef.current = null;
+    }
+  };
+
   const play = () => {
     if (audioRef.current) {
       audioRef.current.play();
@@ -70,6 +84,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (currentTranscript) {
+      pause();
+      resetPlayerState();
       const preprocessed = preprocessTranscript(currentTranscript);
       setProcessedTranscript(preprocessed);
     }

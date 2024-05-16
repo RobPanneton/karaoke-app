@@ -34,12 +34,11 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         // parse data and set to state
         const data = await res.json();
-        console.log({ data });
         setDataFn(data);
         setErrorFn(null);
         setIsLoading(false);
       } catch (e) {
-        console.log({ e });
+        console.error({ e });
         setErrorFn(e);
         setIsLoading(false);
       }
@@ -63,7 +62,6 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   useEffect(() => {
-    console.log("use effect triggered");
     getTranscriptData("/transcripts", setTranscriptList, setListError);
   }, [getTranscriptData]);
 
