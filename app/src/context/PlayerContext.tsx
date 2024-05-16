@@ -30,6 +30,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentParagraph(null);
     setCurrentWord(null);
     setCurrentSpeaker(null);
+    if (requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+      requestRef.current = null;
+    }
   };
 
   const play = () => {
@@ -80,6 +84,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (currentTranscript) {
+      pause();
       resetPlayerState();
       const preprocessed = preprocessTranscript(currentTranscript);
       setProcessedTranscript(preprocessed);
