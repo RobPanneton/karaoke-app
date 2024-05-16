@@ -1,4 +1,4 @@
-@import "../../../variables.scss";
+@import "../../variables.scss";
 
 .heading {
   width: 100%;
@@ -8,10 +8,9 @@
   align-items: center;
 
   h1 {
-    color: black;
-
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 700;
+    font-family: Inter;
 
     margin: 0 auto;
   }

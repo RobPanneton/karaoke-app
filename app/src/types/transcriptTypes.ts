@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 export type TranscriptContext = {
   transcriptList: TranscriptItemList | null;
   currentTranscript: CurrentTranscript | null;
+  userSelect: number;
   listError: boolean;
   transcriptError: boolean;
   handleUserSelect: (e: React.MouseEvent<HTMLButtonElement>) => void;

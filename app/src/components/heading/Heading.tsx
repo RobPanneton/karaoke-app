@@ -5,7 +5,7 @@ import styles from "./Heading.module.scss";
 export const Heading: React.FC = () => {
   return (
     <div className={styles.heading}>
-      <h1>heading</h1>
+      <h1>Caption App</h1>
     </div>
   );
 };
