@@ -44,20 +44,23 @@
   width: 100%;
   max-width: 500px;
 
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 3px 6px rgba($color-purple, 0.5);
   padding: 20px;
   margin: 20px 0;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 3px 6px rgba($color-purple, 0.5);
   background-color: $color-dark-gray;
   border: 1px solid $color-purple;
   border-radius: 8px;
+
   text-align: center;
 }
 
 .paragraph {
   min-height: 150px;
+
   font-size: 18px;
   line-height: 150%;
-  font-family: Inconsolata;
+  font-family: $font-caption;
 
   @media (min-width: $breakpoint-large) {
     font-size: 24px;
