@@ -2,12 +2,17 @@
 
 .playerContainer {
   width: 100%;
+  min-height: 200px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  min-height: 200px;
+  margin-top: 20px;
+
+  @media (min-width: $breakpoint-large) {
+    min-height: 300px;
+  }
 }
 
 .cta {
@@ -22,6 +27,12 @@
     font-size: 24px;
     max-width: 300px;
     text-align: center;
+
+    @media (min-width: $breakpoint-large) {
+      font-size: 48px;
+
+      max-width: 500px;
+    }
   }
 }
 
@@ -31,6 +42,7 @@
 
 .captionDisplay {
   width: 100%;
+  max-width: 500px;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 3px 6px rgba($color-purple, 0.5);
   padding: 20px;
@@ -47,9 +59,9 @@
   line-height: 150%;
   font-family: Inconsolata;
 
-  span {
-    margin: 0 2px;
-    height: 150px;
+  @media (min-width: $breakpoint-large) {
+    font-size: 24px;
+    min-height: 200px;
   }
 }
 

@@ -14,4 +14,10 @@
   color: $color-light-gray;
 
   font-family: Inter;
+
+  @media (min-width: $breakpoint-large) {
+    padding: 90px 160px;
+
+    gap: 60px;
+  }
 }

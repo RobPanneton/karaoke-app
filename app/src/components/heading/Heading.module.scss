@@ -13,5 +13,9 @@
     font-family: Inter;
 
     margin: 0 auto;
+
+    @media (min-width: $breakpoint-large) {
+      font-size: 54px;
+    }
   }
 }
