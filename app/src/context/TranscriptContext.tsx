@@ -73,6 +73,8 @@ export const TranscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // get selected transcript data: call method to fetch it and set to state
     getTranscriptData(`/transcripts/${id}`, setCurrentTranscript, setTranscriptError);
 
+    if (e?.currentTarget?.value === "random") e.currentTarget.blur();
+
     if (playerContainerRef?.current) {
       const topOffset = playerContainerRef.current.getBoundingClientRect().top + window.scrollY - 20;
       window.scrollTo({ top: topOffset, behavior: "smooth" });
