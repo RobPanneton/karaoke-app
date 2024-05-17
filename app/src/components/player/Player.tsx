@@ -21,6 +21,7 @@ export const Player: React.FC = () => {
               <div className={styles.playerControls}>
                 <audio ref={audioRef} controls src={currentTranscript.audio_url}></audio>
               </div>
+              <span className={styles.title}>{currentTranscript.name}</span>
               <div className={styles.captionDisplay}>
                 <div className={styles.paragraph}>
                   <span>

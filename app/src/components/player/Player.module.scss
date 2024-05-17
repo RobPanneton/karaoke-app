@@ -40,12 +40,16 @@
   margin-bottom: 12px;
 }
 
+.title {
+  font-size: 14px;
+}
+
 .captionDisplay {
   width: 100%;
   max-width: 500px;
 
   padding: 20px;
-  margin: 20px 0;
+  margin: 6px 0 20px 0;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 3px 6px rgba($color-purple, 0.5);
   background-color: $color-dark-gray;
