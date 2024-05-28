@@ -22,9 +22,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const { currentTranscript } = useTranscriptContext();
 
-  const resetPlayerState = () => {
+  const resetPlayerState = useCallback(() => {
     setCurrentTime(0);
-
     setIsPlaying(false);
     setProcessedTranscript(null);
     setCurrentParagraph(null);
@@ -34,58 +33,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       cancelAnimationFrame(requestRef.current);
       requestRef.current = null;
     }
-  };
-
-  const play = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-      setIsPlaying(true);
-      isPlayingRef.current = true;
-      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
-    }
-  };
-
-  const pause = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-        requestRef.current = null;
-      }
-    }
-  };
-
-  const seek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  };
-
-  const handleSeeked = () => {
-    if (audioRef.current) {
-      isSeekingRef.current = true;
-      const time = audioRef.current.currentTime;
-      setCurrentTime(time);
-      updateCurrentState();
-    }
-  };
+  }, []);
 
   // preprocess paragraphs with their words and speaker
   const preprocessTranscript = useCallback((transcript: CurrentTranscript) => {
     return mapParagraphs(transcript);
   }, []);
-
-  useEffect(() => {
-    if (currentTranscript) {
-      pause();
-      resetPlayerState();
-      const preprocessed = preprocessTranscript(currentTranscript);
-      setProcessedTranscript(preprocessed);
-    }
-  }, [currentTranscript, preprocessTranscript]);
 
   // update current state for currentTime, currentParagraph, currentWord, currentSpeaker
   const updateCurrentState = useCallback(() => {
@@ -119,20 +72,69 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Use lodash.debounce for updateCurrentState
   const debouncedUpdateCurrentState = useCallback(debounce(updateCurrentState, 30), [updateCurrentState]);
 
+  const play = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      isPlayingRef.current = true;
+      console.log({ debouncedUpdateCurrentState });
+      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+    }
+  }, [debouncedUpdateCurrentState]);
+
+  const pause = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      isPlayingRef.current = false;
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      }
+    }
+  }, []);
+
+  const seek = useCallback((time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
+
+  const handleSeeked = useCallback(() => {
+    if (audioRef.current) {
+      isSeekingRef.current = true;
+      const time = audioRef.current.currentTime;
+      setCurrentTime(time);
+      updateCurrentState();
+    }
+  }, [updateCurrentState]);
+
+  // set script data when user current transcript
+  useEffect(() => {
+    if (currentTranscript) {
+      pause();
+      resetPlayerState();
+      const preprocessed = preprocessTranscript(currentTranscript);
+      setProcessedTranscript(preprocessed);
+    }
+  }, [currentTranscript, preprocessTranscript, pause, resetPlayerState]);
+
   // add listener to watch audioRef metadata and play/pause
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.addEventListener("play", play);
-      audioRef.current.addEventListener("pause", pause);
-      audioRef.current.addEventListener("seeked", handleSeeked);
+      const audioElement = audioRef.current;
+      audioElement.addEventListener("play", play);
+      audioElement.addEventListener("pause", pause);
+      audioElement.addEventListener("seeked", handleSeeked);
 
       return () => {
-        audioRef.current?.removeEventListener("play", play);
-        audioRef.current?.removeEventListener("pause", pause);
-        audioRef.current?.removeEventListener("seeked", handleSeeked);
+        audioElement?.removeEventListener("play", play);
+        audioElement?.removeEventListener("pause", pause);
+        audioElement?.removeEventListener("seeked", handleSeeked);
       };
     }
-  }, [processedTranscript]);
+  }, [processedTranscript, play, pause, seek, handleSeeked]);
 
   // add or remove animation frame depending when user changes isPlaying state
   useEffect(() => {
