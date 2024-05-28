@@ -4,7 +4,14 @@ import debounce from "lodash.debounce";
 import { Word, Speaker, CurrentTranscript } from "../types/transcriptTypes";
 import { CurrentParagraph, PlayerContext as IPlayerContext } from "../types/playerTypes";
 import { useTranscriptContext } from "./TranscriptContext";
-import { getNewCurrentParagraph, getCurrentTime, getWordAndSpeaker, mapParagraphs } from "./PlayerContext.helpers";
+import {
+  getNewCurrentParagraph,
+  getCurrentTime,
+  getWordAndSpeaker,
+  mapParagraphs,
+  isParagraphStillCurrent,
+  getCurrentWord,
+} from "./PlayerContext.helpers";
 
 const PlayerContext = createContext<IPlayerContext | null>(null);
 
@@ -47,15 +54,18 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const time = getCurrentTime(audioRef);
       setCurrentTime(time);
 
-      // assign up-to-date paragraph to local variable
-      const newCurrentParagraph: CurrentParagraph | null = getNewCurrentParagraph(
-        currentParagraph,
-        time,
-        processedTranscript
-      );
+      let newCurrentParagraph: CurrentParagraph | null;
+      let updatedWord: Word | null;
+      let updatedSpeaker: Speaker | null;
 
-      // get current word and speaker
-      const { updatedWord, updatedSpeaker } = getWordAndSpeaker(newCurrentParagraph, time);
+      if (isParagraphStillCurrent(time, currentParagraph)) {
+        newCurrentParagraph = currentParagraph;
+        updatedSpeaker = currentParagraph?.speaker ?? null;
+        updatedWord = getCurrentWord(currentParagraph?.words ?? [], time);
+      } else {
+        newCurrentParagraph = getNewCurrentParagraph(currentParagraph, time, processedTranscript);
+        ({ updatedWord, updatedSpeaker } = getWordAndSpeaker(newCurrentParagraph, time));
+      }
 
       // update state variables
       setCurrentParagraph(newCurrentParagraph);
@@ -64,21 +74,25 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isSeekingRef.current = false;
 
       if (isPlayingRef.current) {
-        requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+        requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState.current);
       }
     }
-  }, [currentTime, processedTranscript, currentParagraph]);
+  }, [processedTranscript, currentParagraph]);
 
-  // Use lodash.debounce for updateCurrentState
-  const debouncedUpdateCurrentState = useCallback(debounce(updateCurrentState, 30), [updateCurrentState]);
+  // use lodash.debounce for updateCurrentState
+  // assign as ref to fix scoping issue
+  const debouncedUpdateCurrentState = useRef(debounce(updateCurrentState, 30));
+  useEffect(() => {
+    console.log("trig useEffect updateCurrentState changed");
+    debouncedUpdateCurrentState.current = debounce(updateCurrentState, 30);
+  }, [updateCurrentState]);
 
   const play = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.play();
       setIsPlaying(true);
       isPlayingRef.current = true;
-      console.log({ debouncedUpdateCurrentState });
-      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState.current);
     }
   }, [debouncedUpdateCurrentState]);
 
@@ -91,13 +105,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         cancelAnimationFrame(requestRef.current);
         requestRef.current = null;
       }
-    }
-  }, []);
-
-  const seek = useCallback((time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
     }
   }, []);
 
@@ -134,12 +141,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         audioElement?.removeEventListener("seeked", handleSeeked);
       };
     }
-  }, [processedTranscript, play, pause, seek, handleSeeked]);
+  }, [processedTranscript, play, pause, handleSeeked]);
 
   // add or remove animation frame depending when user changes isPlaying state
   useEffect(() => {
     if (isPlaying && requestRef.current === null) {
-      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState);
+      requestRef.current = requestAnimationFrame(debouncedUpdateCurrentState.current);
     } else if (!isPlaying && requestRef.current) {
       cancelAnimationFrame(requestRef.current);
       requestRef.current = null;
@@ -156,7 +163,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentSpeaker,
         play,
         pause,
-        seek,
         audioRef,
       }}
     >
