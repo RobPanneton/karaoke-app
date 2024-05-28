@@ -10,7 +10,6 @@ export type PlayerContext = {
   play: () => void;
   pause: () => void;
   seek: (time: number) => void;
-  transcriptDuration: number;
   audioRef: React.RefObject<HTMLAudioElement> | null;
 };
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { usePlayerContext } from "../../context/PlayerContext";
 import { useTranscriptContext } from "../../context/TranscriptContext";
 import { Word } from "../../types/transcriptTypes";
@@ -31,12 +31,12 @@ export const Player: React.FC = () => {
                         {currentParagraph?.words.map((word: Word, index: number) => {
                           const key = `${index}-${word.text}-${word.duration}-${word.time}`;
                           return (
-                            <>
-                              <span key={key} className={currentWord?.time === word.time ? styles.highlight : ""}>
+                            <Fragment key={key}>
+                              <span className={currentWord?.time === word.time ? styles.highlight : ""}>
                                 {word.text}
                               </span>
                               {index !== currentParagraph?.words.length - 1 && <span> </span>}
-                            </>
+                            </Fragment>
                           );
                         })}
                       </span>

@@ -10,7 +10,6 @@ const PlayerContext = createContext<IPlayerContext | null>(null);
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
-  const [transcriptDuration, setTranscriptDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const isPlayingRef = useRef(isPlaying);
   const isSeekingRef = useRef<boolean>(false);
@@ -25,7 +24,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const resetPlayerState = () => {
     setCurrentTime(0);
-    setTranscriptDuration(0);
+
     setIsPlaying(false);
     setProcessedTranscript(null);
     setCurrentParagraph(null);
@@ -62,12 +61,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setTranscriptDuration(audioRef.current.duration);
     }
   };
 
@@ -129,18 +122,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // add listener to watch audioRef metadata and play/pause
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata); // Listen for metadata loading
-      //
       audioRef.current.addEventListener("play", play);
       audioRef.current.addEventListener("pause", pause);
       audioRef.current.addEventListener("seeked", handleSeeked);
 
       return () => {
-        audioRef.current?.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        //
         audioRef.current?.removeEventListener("play", play);
         audioRef.current?.removeEventListener("pause", pause);
-        audioRef.current?.removeEventListener("seeked", handleSeeked); // Cleanup
+        audioRef.current?.removeEventListener("seeked", handleSeeked);
       };
     }
   }, [processedTranscript]);
@@ -166,7 +155,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         play,
         pause,
         seek,
-        transcriptDuration,
         audioRef,
       }}
     >
