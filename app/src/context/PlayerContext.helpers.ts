@@ -1,5 +1,5 @@
 import { CurrentParagraph } from "../types/playerTypes";
-import { CurrentTranscript, Speaker, Word } from "../types/transcriptTypes";
+import { CurrentTranscript, Paragraph, Speaker, Word } from "../types/transcriptTypes";
 
 export const getNewCurrentParagraph = (
   currentParagraph: CurrentParagraph | null,
@@ -66,4 +66,11 @@ export const mapParagraphs = (transcript: CurrentTranscript): CurrentParagraph[]
       name: "Unknown",
     },
   }));
+};
+
+export const isParagraphStillCurrent = (currentTime: number, paragraph: Paragraph | null) => {
+  if (!currentTime || !paragraph) return false;
+
+  const paragraphEndTime = paragraph.time + paragraph.duration;
+  return currentTime + 0.5 >= paragraph.time && currentTime <= paragraphEndTime;
 };

@@ -3,12 +3,10 @@ import { TranscriptProvider } from "./context/TranscriptContext";
 
 import "./cssReset.scss";
 
-export function App() {
+export const App = () => {
   return (
-    <div>
-      <TranscriptProvider>
-        <HomePage />
-      </TranscriptProvider>
-    </div>
+    <TranscriptProvider>
+      <HomePage />
+    </TranscriptProvider>
   );
-}
+};
